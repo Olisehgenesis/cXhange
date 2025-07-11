@@ -1,0 +1,46 @@
+{
+  "author": "olisehgenesis",
+  "bugs": {
+    "url": "https://github.com/celo-org/celo-composer/issues"
+  },
+  "description": "Custom Celo Composer project.",
+  "homepage": "https://github.com/celo-org/celo-composer/blob/main/README.md",
+  "keywords": [
+    "celo-composer",
+    "celo"
+  ],
+  "license": "MIT",
+  "name": "c-switch",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/celo-org/celo-composer.git"
+  },
+  "resolutions": {
+    "@wagmi/connectors": "5.7.7",
+    "@wagmi/core": "2.16.7",
+    "@walletconnect/utils": "^2.19.1",
+    "elliptic": "6.6.1",
+    "viem": "2.23.2",
+    "wagmi": "2.14.11"
+  },
+  "scripts": {
+    "react-app:dev": "yarn workspace @c-switch/react-app dev",
+    "react-app:build": "yarn workspace @c-switch/react-app build",
+    "react-app:start": "yarn workspace @c-switch/react-app start",
+    "react-app:lint": "yarn workspace @c-switch/react-app lint",
+    "hardhat:postinstall": "yarn workspace @c-switch/hardhat postinstall",
+    "hardhat:compile": "yarn workspace @c-switch/hardhat compile",
+    "hardhat:tsc": "yarn workspace @c-switch/hardhat tsc",
+    "hardhat:build": "yarn workspace @c-switch/hardhat build",
+    "hardhat:clean": "yarn workspace @c-switch/hardhat clean",
+    "hardhat:run:node": "yarn workspace @c-switch/hardhat run:node",
+    "hardhat:test": "yarn workspace @c-switch/hardhat test",
+    "hardhat:prettier": "yarn workspace @c-switch/hardhat prettier",
+    "hardhat:sync:abis": "yarn workspace @c-switch/hardhat sync:abis"
+  },
+  "version": "1.0.0",
+  "workspaces": [
+    "packages/*"
+  ]
+}
