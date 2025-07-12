@@ -26,7 +26,9 @@
     "typescript": "^5.5.3"
   },
   "dependencies": {
-    "dotenv": "^16.4.5"
+    "@openzeppelin/contracts": "^5.3.0",
+    "dotenv": "^16.4.5",
+    "viem": "^2.31.7"
   },
   "scripts": {
     "postinstall": "chmod +x sync-abis.js",
@@ -36,6 +38,9 @@
     "clean": "hardhat clean",
     "run:node": "hardhat node",
     "test": "hardhat test",
+    "deploy:testnet": "ts-node scripts/deploy-cxchange.ts",
+    "verify:testnet": "ts-node scripts/verify-cxchange.ts",
+    "test:cxchange:testnet": "ts-node scripts/test-cxchange.ts",
     "prettier": "prettier --write 'contracts/**/*.sol' '**/*.ts'",
     "sync:abis": "node sync-abis.js"
   },

@@ -17,10 +17,7 @@ const config: HardhatUserConfig = {
     },
   },
   etherscan: {
-    apiKey: {
-      alfajores: process.env.CELOSCAN_API_KEY ?? '',
-      celo: process.env.CELOSCAN_API_KEY ?? '',
-    },
+    apiKey: process.env.CELOSCAN_API_KEY ?? '',
     customChains: [
       {
         chainId: 44_787,
@@ -43,7 +40,16 @@ const config: HardhatUserConfig = {
   sourcify: {
     enabled: false,
   },
-  solidity: '0.8.24',
+  solidity: {
+    version: '0.8.28',
+    settings: {
+      viaIR: true,
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
 };
 
 export default config;
