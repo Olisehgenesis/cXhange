@@ -40,6 +40,7 @@
     "test": "hardhat test",
     "deploy:testnet": "ts-node scripts/deploy-cxchange.ts",
     "verify:testnet": "ts-node scripts/verify-cxchange.ts",
+    "setup:cxchange:testnet": "ts-node scripts/setup-cxchange.ts",
     "test:cxchange:testnet": "ts-node scripts/test-cxchange.ts",
     "prettier": "prettier --write 'contracts/**/*.sol' '**/*.ts'",
     "sync:abis": "node sync-abis.js"
