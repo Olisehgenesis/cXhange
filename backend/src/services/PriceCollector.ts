@@ -27,11 +27,8 @@ export class PriceCollector {
   async initialize() {
     console.log('🚀 Initializing Price Collector...')
 
-    // Discover trading pairs
-    await this.discoverTradingPairs()
-
-    // Store pairs in database
-    await this.storeTradingPairs()
+    // Load trading pairs from database instead of discovering from contract
+    await this.loadTradingPairsFromDatabase()
 
     console.log(`✅ Initialized with ${this.tradingPairs.length} trading pairs`)
   }
@@ -84,6 +81,31 @@ export class PriceCollector {
       console.error('Error discovering trading pairs:', error)
       throw error
     }
+  }
+
+  async loadTradingPairsFromDatabase() {
+    console.log('📥 Loading trading pairs from database...')
+
+    const { data, error } = await supabase
+      .from('trading_pairs')
+      .select('*')
+      .eq('is_active', true)
+
+    if (error) {
+      console.error('Error loading trading pairs from database:', error)
+      throw error
+    }
+
+    this.tradingPairs = data.map(pair => ({
+      pair: pair.pair,
+      tokenIn: pair.token_in,
+      tokenOut: pair.token_out,
+      tokenInSymbol: pair.token_in_symbol,
+      tokenOutSymbol: pair.token_out_symbol,
+      exchangeId: pair.exchange_id
+    }))
+
+    console.log(`✅ Loaded ${this.tradingPairs.length} trading pairs from database`)
   }
 
   async storeTradingPairs() {
@@ -149,6 +171,11 @@ export class PriceCollector {
         }
 
       } catch (error) {
+        // Handle "no valid median" errors gracefully - this means the pair doesn't have enough liquidity
+        if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' && error.message.includes('no valid median')) {
+          console.log(`⚠️  No valid median for ${pair.pair} - skipping`)
+          return null
+        }
         console.error(`Error getting price for ${pair.pair}:`, error)
         return null
       }
@@ -157,15 +184,18 @@ export class PriceCollector {
     const prices = (await Promise.all(pricePromises)).filter(p => p !== null) as Price[]
 
     if (prices.length > 0) {
-      const { error } = await supabase
+      // Insert prices
+      const { error: priceError } = await supabase
         .from('prices')
         .insert(prices)
 
-      if (error) {
-        console.error('Error inserting prices:', error)
+      if (priceError) {
+        console.error('Error inserting prices:', priceError)
       } else {
         console.log(`✅ Inserted ${prices.length} price records`)
       }
+
+      // Price collection complete - candles are now generated dynamically on frontend
     }
   }
 

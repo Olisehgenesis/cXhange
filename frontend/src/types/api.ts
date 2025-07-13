@@ -29,6 +29,20 @@ export interface Candle {
   updated_at: string
 }
 
+export interface LiveCandle {
+  pair: string
+  timeframe: string
+  open_price: string
+  high_price: string
+  low_price: string
+  close_price: string
+  volume: string
+  trades: number
+  timestamp: string
+  is_live: boolean
+  last_update: string
+}
+
 export interface TradingPair {
   id: number
   pair: string

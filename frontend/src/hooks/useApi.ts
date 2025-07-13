@@ -1,5 +1,5 @@
 import { useQuery } from 'react-query'
-import { getLatestPrices, getPriceHistory, getCandles, getTradingPairs, getMarketStats } from '../utils/api'
+import { getLatestPrices, getPriceHistory, getTradingPairs, getMarketStats } from '../utils/api'
 
 // Hook for latest prices
 export const useLatestPrices = (pair?: string, limit: number = 100) => {
@@ -25,17 +25,7 @@ export const usePriceHistory = (pair: string, limit: number = 100) => {
   )
 }
 
-// Hook for candles
-export const useCandles = (pair: string, timeframe: string = '1h', limit: number = 100) => {
-  return useQuery(
-    ['candles', pair, timeframe, limit],
-    () => getCandles(pair, timeframe, limit),
-    {
-      refetchInterval: 30000, // Refetch every 30 seconds
-      staleTime: 15000,
-    }
-  )
-}
+
 
 // Hook for trading pairs
 export const useTradingPairs = () => {
@@ -45,9 +35,14 @@ export const useTradingPairs = () => {
     {
       refetchInterval: 60000, // Refetch every minute
       staleTime: 30000,
+      retry: 2,
+      retryDelay: 2000,
+      refetchOnWindowFocus: false,
     }
   )
 }
+
+
 
 // Hook for market stats
 export const useMarketStats = () => {

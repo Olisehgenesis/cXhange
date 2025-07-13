@@ -19,7 +19,7 @@ interface TradingPairData {
 export class TradingPairsService {
   private isRunning = false
   private intervalId: NodeJS.Timeout | null = null
-  private readonly UPDATE_INTERVAL = 5000 // 5 seconds
+  private readonly UPDATE_INTERVAL = 0 // No automatic updates
 
   async start() {
     if (this.isRunning) {
@@ -30,15 +30,10 @@ export class TradingPairsService {
     console.log('🚀 Starting trading pairs service...')
     this.isRunning = true
 
-    // Initial update
+    // Only do initial update, no periodic updates
     await this.updateTradingPairs()
 
-    // Set up interval for periodic updates
-    this.intervalId = setInterval(async () => {
-      await this.updateTradingPairs()
-    }, this.UPDATE_INTERVAL)
-
-    console.log(`✅ Trading pairs service started (updates every ${this.UPDATE_INTERVAL / 1000}s)`)
+    console.log('✅ Trading pairs service completed initial update')
   }
 
   stop() {

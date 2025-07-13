@@ -4,10 +4,17 @@
 -- Prices table for storing real-time price data
 CREATE TABLE IF NOT EXISTS prices (
   id BIGSERIAL PRIMARY KEY,
-  pair VARCHAR(20) NOT NULL,
+  pair VARCHAR(50) NOT NULL,
+  token_in VARCHAR(42) NOT NULL,
+  token_out VARCHAR(42) NOT NULL,
+  token_in_symbol VARCHAR(20) NOT NULL,
+  token_out_symbol VARCHAR(20) NOT NULL,
   price DECIMAL(36,18) NOT NULL,
-  volume DECIMAL(36,18) NOT NULL DEFAULT 0,
+  inverse_price DECIMAL(36,18) NOT NULL,
+  volume_24h DECIMAL(36,18) DEFAULT 0,
+  source VARCHAR(10) NOT NULL DEFAULT 'MENTO',
   timestamp TIMESTAMPTZ NOT NULL,
+  block_number BIGINT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -69,6 +76,18 @@ CREATE POLICY "Allow insert on trading_pairs" ON trading_pairs FOR INSERT WITH C
 
 DROP POLICY IF EXISTS "Allow update on trading_pairs" ON trading_pairs;
 CREATE POLICY "Allow update on trading_pairs" ON trading_pairs FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Allow insert on prices" ON prices;
+CREATE POLICY "Allow insert on prices" ON prices FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow update on prices" ON prices;
+CREATE POLICY "Allow update on prices" ON prices FOR UPDATE USING (true);
+
+DROP POLICY IF EXISTS "Allow insert on candles" ON candles;
+CREATE POLICY "Allow insert on candles" ON candles FOR INSERT WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow update on candles" ON candles;
+CREATE POLICY "Allow update on candles" ON candles FOR UPDATE USING (true);
 
 -- Insert some sample trading pairs (optional)
 INSERT INTO trading_pairs (pair, token_in, token_out, token_in_symbol, token_out_symbol, exchange_id, is_active) 

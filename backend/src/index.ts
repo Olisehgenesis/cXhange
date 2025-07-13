@@ -7,7 +7,6 @@ import helmet from 'helmet'
 import morgan from 'morgan'
 import { supabase } from './config/supabase'
 import { PriceCollector } from './services/PriceCollector'
-import { CandleGenerator } from './services/CandleGenerator'
 import { TradingPairsService } from './services/TradingPairsService'
 
 const app: Application = express()
@@ -51,29 +50,7 @@ app.get('/api/prices/latest', async (req, res) => {
   }
 })
 
-// Get candles for a specific pair
-app.get('/api/candles/:pair', async (req, res) => {
-  try {
-    const { pair } = req.params
-    const { timeframe = '1h', limit = '100' } = req.query
 
-    const { data, error } = await supabase
-      .from('candles')
-      .select('*')
-      .eq('pair', pair)
-      .eq('timeframe', timeframe)
-      .order('timestamp', { ascending: false })
-      .limit(parseInt(limit as string))
-
-    if (error) {
-      return res.status(500).json({ error: error.message })
-    }
-
-    return res.json({ candles: data })
-  } catch (error) {
-    return res.status(500).json({ error: 'Internal server error' })
-  }
-})
 
 // Get all trading pairs
 app.get('/api/pairs', async (req, res) => {
@@ -156,15 +133,16 @@ app.post('/api/admin/start-price-collection', async (req, res) => {
   }
 })
 
-// Start candle generation (admin endpoint)
-app.post('/api/admin/start-candle-generation', async (req, res) => {
+
+
+// Update trading pairs manually (admin endpoint)
+app.post('/api/admin/update-trading-pairs', async (req, res) => {
   try {
-    const generator = new CandleGenerator()
-    generator.start()
-    
-    return res.json({ message: 'Candle generation started' })
+    const tradingPairsService = new TradingPairsService()
+    await tradingPairsService.start()
+    return res.json({ message: 'Trading pairs updated successfully' })
   } catch (error) {
-    return res.status(500).json({ error: 'Failed to start candle generation' })
+    return res.status(500).json({ error: 'Failed to update trading pairs' })
   }
 })
 
@@ -198,13 +176,14 @@ app.listen(PORT, async () => {
   console.log(`📊 Health check: http://localhost:${PORT}/health`)
   console.log(`📈 API docs: http://localhost:${PORT}/api`)
   
-  // Start trading pairs service automatically
+  // Start price collection service automatically
   try {
-    const tradingPairsService = new TradingPairsService()
-    await tradingPairsService.start()
-    console.log('🔄 Trading pairs service started automatically')
+    const priceCollector = new PriceCollector()
+    await priceCollector.initialize()
+    priceCollector.start()
+    console.log('🔄 Price collection service started automatically')
   } catch (error) {
-    console.error('❌ Failed to start trading pairs service:', error)
+    console.error('❌ Failed to start price collection service:', error)
   }
 })
 

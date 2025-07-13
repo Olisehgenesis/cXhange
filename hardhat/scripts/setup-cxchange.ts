@@ -4,7 +4,7 @@ dotEnvConfig();
 import { createWalletClient, createPublicClient, http, parseEther, formatEther, getContract } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
 import { celoAlfajores } from 'viem/chains';
-import cXchangeArtifact from '../artifacts/contracts/cXchange.sol/cXchange.json';
+import cXchangeArtifact from '../artifacts/contracts/cXchangev2.sol/cXchange.json';
 
 // Environment variables
 const contractAddress = process.env.CONTRACT_ADDRESS! as `0x${string}`;
