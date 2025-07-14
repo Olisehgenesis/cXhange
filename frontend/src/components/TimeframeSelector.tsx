@@ -6,8 +6,6 @@ interface TimeframeSelectorProps {
 }
 
 const timeframes = [
-  { value: '10s', label: '10s' },
-  { value: '30s', label: '30s' },
   { value: '1m', label: '1m' },
   { value: '5m', label: '5m' },
   { value: '15m', label: '15m' },
@@ -21,15 +19,15 @@ export const TimeframeSelector: React.FC<TimeframeSelectorProps> = ({
   onTimeframeChange,
 }) => {
   return (
-    <div className="flex space-x-1 bg-dark-800 rounded-lg p-1 border border-gray-600">
+    <div className="flex space-x-1 bg-sand-100 rounded-milo p-1 border border-sand-500">
       {timeframes.map((timeframe) => (
         <button
           key={timeframe.value}
           onClick={() => onTimeframeChange(timeframe.value)}
-          className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+          className={`px-4 py-2 rounded-md text-sm font-outfit font-medium transition-all duration-200 ${
             selectedTimeframe === timeframe.value
-              ? 'bg-primary-500 text-white shadow-lg'
-              : 'text-gray-400 hover:text-white hover:bg-gray-700'
+              ? 'bg-forest-500 text-white shadow-milo'
+              : 'text-sand-700 hover:text-sand-800 hover:bg-sand-200'
           }`}
         >
           {timeframe.label}

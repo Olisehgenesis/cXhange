@@ -21,21 +21,21 @@ export const PairSelector: React.FC<PairSelectorProps> = ({
         value={selectedPair}
         onChange={(e) => onPairChange(e.target.value)}
         disabled={isLoading}
-        className="appearance-none bg-dark-800 text-white border border-gray-600 rounded-lg px-4 py-3 pr-10 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 w-full text-lg font-medium"
+        className="select-milo w-full text-lg font-outfit font-medium"
       >
         {isLoading ? (
-          <option>Loading pairs...</option>
+          <option className="text-sand-700">Loading pairs...</option>
         ) : (
                       <>
               {pairs.map((pair) => (
-                <option key={pair.pair} value={pair.pair}>
+              <option key={pair.pair} value={pair.pair} className="text-sand-800">
                   {pair.token_in_symbol}/{pair.token_out_symbol}
                 </option>
               ))}
             </>
         )}
       </select>
-      <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" size={16} />
+      <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-sand-600 pointer-events-none" size={20} />
     </div>
   )
 } 

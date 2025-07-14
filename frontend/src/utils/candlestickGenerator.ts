@@ -17,8 +17,6 @@ export interface TimeframeConfig {
 }
 
 export const TIMEFRAMES: Record<string, TimeframeConfig> = {
-  '10s': { seconds: 10, label: '10s' },
-  '30s': { seconds: 30, label: '30s' },
   '1m': { seconds: 60, label: '1m' },
   '5m': { seconds: 300, label: '5m' },
   '15m': { seconds: 900, label: '15m' },
