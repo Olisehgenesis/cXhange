@@ -4,12 +4,14 @@ import { PairSelector } from './components/PairSelector'
 import { TimeframeSelector } from './components/TimeframeSelector'
 import { DynamicCandlestickChart } from './components/DynamicCandlestickChart'
 import { useTradingPairs } from './hooks/useApi'
-import { Search, TrendingUp, Globe, Shield, Zap, Wallet, User, Coins, BarChart3, Settings } from 'lucide-react'
+import { Search, TrendingUp, Globe, Shield, Zap, Wallet, User, Coins, BarChart3, Settings, X } from 'lucide-react'
 import WalletConnectButton from './components/WalletConnectButton'
 import { useAccount, useBalance } from 'wagmi'
 import { celo, celoAlfajores } from 'wagmi/chains'
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate } from 'react-router-dom'
 import ProfilePage from './components/ProfilePage'
+import { MENTO_ASSETS as assets } from './constants/mentoAssets'
+import BuySellDialog from './components/BuySellDialog'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,7 +23,7 @@ const queryClient = new QueryClient({
 })
 
 function TradingApp() {
-  const [selectedPair, setSelectedPair] = useState('cUSD_cCELO')
+  const [selectedPair, setSelectedPair] = useState('CELO_cUSD')
   const [selectedTimeframe, setSelectedTimeframe] = useState('15m')
   const [latestPrice, setLatestPrice] = useState<number | null>(null)
   const [priceChange, setPriceChange] = useState<number>(0)
@@ -29,18 +31,38 @@ function TradingApp() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isWalletConnected, setIsWalletConnected] = useState(false)
   const navigate = useNavigate();
+  const [tradeDialogOpen, setTradeDialogOpen] = useState(false);
+  const [tradeAction, setTradeAction] = useState<'buy' | 'sell' | null>(null);
 
   const { data: pairs = [], isLoading: pairsLoading, error: pairsError } = useTradingPairs()
   const { address, isConnected, chain } = useAccount();
-  // cUSD and cCELO contract addresses (mainnet/alfajores)
-  const cUSD = chain?.id === celoAlfajores.id
-    ? '0x874069Fa1Eb16D44d622F2e0Ca25eeA172369bC1' // Alfajores cUSD
-    : '0x765DE816845861e75A25fCA122bb6898B8B1282a'; // Mainnet cUSD
-  const cCELO = chain?.id === celoAlfajores.id
-    ? '0x10c5e6cF47eB9b0aB6C7e6eB2b0F7c9A2b1A1C5e' // Alfajores cCELO
-    : '0x32A9FE697a32135A6C8507eC58A5CEBfB7B3F1e4'; // Mainnet cCELO
-  const cUSDBalance = useBalance({ address, token: cUSD, chainId: chain?.id });
-  const cCELOBalance = useBalance({ address, token: cCELO, chainId: chain?.id });
+  // Add state for assets
+
+
+  // Helper to get asset info from assets state
+  const getAssetInfo = (symbol: string) => {
+    return assets.find(a => a.symbol === symbol);
+  };
+
+  // cUSD and CELO contract addresses (mainnet/alfajores)
+  const cUSDBalance = useBalance({ address, token: assets.find(a => a.symbol === 'cUSD')?.address as `0x${string}`, chainId: chain?.id });
+  const CELOBalance = useBalance({ address, token: assets.find(a => a.symbol === 'CELO')?.address as `0x${string}`, chainId: chain?.id });
+
+  // Helper to get token addresses and symbols for selected pair
+  const getPairTokens = () => {
+    const [tokenIn, tokenOut] = selectedPair.split('_');
+    return { tokenIn, tokenOut };
+  };
+
+  // Get balances for the selected pair tokens
+  const { tokenIn, tokenOut } = getPairTokens();
+  const tokenInAsset = getAssetInfo(tokenIn);
+  const tokenOutAsset = getAssetInfo(tokenOut);
+  const tokenInBalance = useBalance({ address, token: tokenInAsset?.address as `0x${string}`, chainId: chain?.id });
+  const tokenOutBalance = useBalance({ address, token: tokenOutAsset?.address as `0x${string}`, chainId: chain?.id });
+
+  // Fonbank cUSD buy link (example, update as needed)
+  const fonbankLink = 'https://fonbnk.com/buy-cusd';
 
   // Handle errors
   const hasPairsError = pairsError !== null && pairsError !== undefined
@@ -56,8 +78,7 @@ function TradingApp() {
     if (pairs.length > 0) {
       const celoCusd = pairs.find(
         p =>
-          (p.token_in_symbol === 'CELO' && p.token_out_symbol === 'cUSD') ||
-          (p.token_in_symbol === 'cUSD' && p.token_out_symbol === 'CELO')
+          (p.token_in_symbol === 'CELO' && p.token_out_symbol === 'cUSD')
       )
       if (celoCusd && selectedPair !== celoCusd.pair) {
         setSelectedPair(celoCusd.pair)
@@ -124,7 +145,7 @@ function TradingApp() {
               </div>
               
               {/* Wallet Connect Button */}
-              <WalletConnectButton onProfileClick={() => navigate('/profile')} />
+              <WalletConnectButton />
               <Link to="/profile" className="p-2 rounded-full hover:bg-sand-200 transition-colors border border-sand-300 ml-2" aria-label="Profile">
                 <User className="w-4 h-4 text-sand-700" />
               </Link>
@@ -256,10 +277,10 @@ function TradingApp() {
               </div>
               
               <div className="flex items-center space-x-3">
-                <button className="btn-primary text-sm px-4 py-2">
-                  Buy {selectedPair.split('_')[1]}
+                <button className="btn-primary text-sm px-4 py-2" onClick={() => { setTradeAction('buy'); setTradeDialogOpen(true); }}>
+                  Buy {selectedPair.split('_')[0]}
                 </button>
-                <button className="btn-secondary text-sm px-4 py-2">
+                <button className="btn-secondary text-sm px-4 py-2" onClick={() => { setTradeAction('sell'); setTradeDialogOpen(true); }}>
                   Sell {selectedPair.split('_')[0]}
                 </button>
                 <button className="p-2 text-sand-600 hover:text-sand-800 hover:bg-sand-200 rounded-milo transition-colors">
@@ -344,9 +365,9 @@ function TradingApp() {
                       </span>
                     </div>
                     <div className="flex justify-between items-center p-2 bg-sand-50 rounded-milo">
-                      <span className="text-sand-700 font-inter text-sm">cCELO</span>
+                      <span className="text-sand-700 font-inter text-sm">CELO</span>
                       <span className="font-outfit font-semibold text-sand-800 text-sm">
-                        {cCELOBalance.isLoading ? 'Loading...' : cCELOBalance.data ? parseFloat(cCELOBalance.data.formatted).toFixed(4) : '0.0000'}
+                        {CELOBalance.isLoading ? 'Loading...' : CELOBalance.data ? parseFloat(CELOBalance.data.formatted).toFixed(4) : '0.0000'}
                       </span>
                     </div>
                   </div>
@@ -367,7 +388,7 @@ function TradingApp() {
                 <div className="space-y-3">
                   <div className="flex justify-between items-center p-2 bg-sand-50 rounded-milo">
                     <div>
-                      <p className="font-outfit font-medium text-sand-800 text-sm">Buy cCELO</p>
+                      <p className="font-outfit font-medium text-sand-800 text-sm">Buy CELO</p>
                       <p className="text-sand-600 font-inter text-xs">2 hours ago</p>
                     </div>
                     <span className="font-outfit font-semibold text-forest-500 text-sm">+$1,234</span>
@@ -392,10 +413,16 @@ function TradingApp() {
               <h3 className="text-base font-outfit font-semibold text-sand-800 mb-4">Quick Actions</h3>
               
               <div className="space-y-3">
-                <button className="w-full btn-primary text-sm py-2">
-                  Buy {selectedPair.split('_')[1]}
+                <button 
+                  className="w-full btn-primary text-sm py-2"
+                  onClick={() => { setTradeAction('buy'); setTradeDialogOpen(true); }}
+                >
+                  Buy {selectedPair.split('_')[0]}
                 </button>
-                <button className="w-full btn-secondary text-sm py-2">
+                <button 
+                  className="w-full btn-secondary text-sm py-2"
+                  onClick={() => { setTradeAction('sell'); setTradeDialogOpen(true); }}
+                >
                   Sell {selectedPair.split('_')[0]}
                 </button>
                 <button className="w-full btn-accent text-sm py-2">
@@ -406,6 +433,17 @@ function TradingApp() {
           </div>
         </div>
       </div>
+      {/* Trade Dialog */}
+      <BuySellDialog
+        open={tradeDialogOpen}
+        onClose={() => setTradeDialogOpen(false)}
+        action={tradeAction}
+        tokenIn={tokenIn}
+        tokenOut={tokenOut}
+        address={address}
+        isConnected={!!isConnected}
+        fonbankLink={fonbankLink}
+      />
       <footer className="bg-sand-100 border-t border-sand-500 shadow-milo text-sand-700 text-sm font-inter py-6 mt-8">
         <div className="container mx-auto flex flex-col md:flex-row items-center justify-between px-8 gap-4">
           <div className="flex items-center space-x-3">

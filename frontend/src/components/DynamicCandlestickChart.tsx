@@ -29,13 +29,7 @@ export const DynamicCandlestickChart: React.FC<DynamicCandlestickChartProps> = (
   const [newCandleAnimation, setNewCandleAnimation] = useState(false)
   const [zoom, setZoom] = useState(1)
 
-  console.log('🎯 Dynamic Candlestick Chart rendered:', {
-    pair,
-    timeframe,
-    candlesCount: candles.length,
-    hasLiveCandle: !!liveCandle,
-    chartType
-  })
+  
 
   // Clear previous pair data when pair changes
   useEffect(() => {

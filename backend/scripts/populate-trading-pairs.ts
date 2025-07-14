@@ -19,6 +19,10 @@ interface TradingPairData {
   exchangeId: string
 }
 
+// Helper: identify CELO and cUSD by symbol (add at top of file)
+const CELO_SYMBOLS = ['CELO'];
+const STABLE_SYMBOLS = ['cUSD', 'cUSDC', 'USDC', 'cUSDT', 'USDT'];
+
 async function discoverTradingPairs(): Promise<TradingPairData[]> {
   console.log('🔍 Discovering trading pairs from BiPoolManager...')
   
@@ -35,8 +39,7 @@ async function discoverTradingPairs(): Promise<TradingPairData[]> {
 
     for (const exchange of exchanges) {
       if (exchange.assets.length === 2) {
-        const [tokenA, tokenB] = exchange.assets
-
+        const [tokenA, tokenB] = exchange.assets;
         try {
           const [symbolA, symbolB] = await Promise.all([
             publicClient.readContract({
@@ -49,22 +52,35 @@ async function discoverTradingPairs(): Promise<TradingPairData[]> {
               abi: erc20Abi,
               functionName: 'symbol',
             })
-          ])
+          ]);
 
-          const pairData: TradingPairData = {
-            pair: `${symbolA}_${symbolB}`,
-            tokenIn: tokenA,
-            tokenOut: tokenB,
-            tokenInSymbol: symbolA as string,
-            tokenOutSymbol: symbolB as string,
-            exchangeId: exchange.exchangeId
+          // Enforce CELO as tokenIn and cUSD (or other stable) as tokenOut
+          let baseSymbol = symbolA as string;
+          let quoteSymbol = symbolB as string;
+          let baseToken = tokenA;
+          let quoteToken = tokenB;
+          if (
+            (STABLE_SYMBOLS.includes(baseSymbol) && CELO_SYMBOLS.includes(quoteSymbol)) ||
+            (STABLE_SYMBOLS.includes(baseSymbol) && !STABLE_SYMBOLS.includes(quoteSymbol))
+          ) {
+            // Swap so that stable is always tokenOut
+            baseSymbol = symbolB as string;
+            quoteSymbol = symbolA as string;
+            baseToken = tokenB;
+            quoteToken = tokenA;
           }
-
-          tradingPairs.push(pairData)
-          console.log(`  ✅ Found pair: ${symbolA}/${symbolB} (${exchange.exchangeId})`)
-
+          const pairData: TradingPairData = {
+            pair: `${baseSymbol}_${quoteSymbol}`,
+            tokenIn: baseToken,
+            tokenOut: quoteToken,
+            tokenInSymbol: baseSymbol,
+            tokenOutSymbol: quoteSymbol,
+            exchangeId: exchange.exchangeId
+          };
+          tradingPairs.push(pairData);
+          console.log(`  ✅ Found pair: ${baseSymbol}/${quoteSymbol} (${exchange.exchangeId})`);
         } catch (error) {
-          console.log(`  ❌ Failed to get symbols for pair: ${tokenA}/${tokenB}`)
+          console.log(`  ❌ Failed to get symbols for pair: ${tokenA}/${tokenB}`);
         }
       }
     }

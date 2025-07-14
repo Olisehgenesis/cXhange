@@ -54,6 +54,7 @@
     "verify:setup:testnet:v3": "ts-node scripts/verify-setupv3.ts",
     "test:cxchange:testnet": "ts-node scripts/test-cxchange.ts",
     "test:cxchange:testnet:v4": "ts-node scripts/test-cxchangev4.ts",
+    "get:assets:testnet": "ts-node scripts/get-assets.ts",
     "prettier": "prettier --write 'contracts/**/*.sol' '**/*.ts'",
     "sync:abis": "node sync-abis.js"
   },

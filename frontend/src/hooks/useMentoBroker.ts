@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { usePublicClient,  useChainId } from 'wagmi';
 
-import cXchangeArtifact from '../cXchangeABI.json';
+import cXchangeArtifact from '../abis/cXchangeABI.json';
 
 // Read contract addresses from environment variables
 const CXCHANGE_ADDRESSES: Record<number, string | undefined> = {
