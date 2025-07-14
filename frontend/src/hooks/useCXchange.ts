@@ -62,6 +62,7 @@ interface UseCXchangeReturn {
   isLoadingPairs: boolean;
   isLoadingStats: boolean;
   isSwapping: boolean;
+  isApproving: boolean;
   
   // Error states
   error: string | null;
@@ -79,6 +80,8 @@ interface UseCXchangeReturn {
   
   // Write methods
   executeSwap: (params: SwapParams) => Promise<SwapResult>;
+  approveToken: (tokenAddress: string, amount: string) => Promise<string>;
+  checkAllowance: (tokenAddress: string, spenderAddress: string) => Promise<bigint>;
   calculateMinAmountOut: (amountOut: string, slippagePercent: number) => string;
   
   // Utility methods
@@ -103,6 +106,7 @@ export function useCXchange({ contractAddress, account, chainId }: UseCXchangePr
   const [isLoadingPairs, setIsLoadingPairs] = useState(false);
   const [isLoadingStats, setIsLoadingStats] = useState(false);
   const [isSwapping, setIsSwapping] = useState(false);
+  const [isApproving, setIsApproving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [swapError, setSwapError] = useState<string | null>(null);
   
@@ -133,6 +137,7 @@ export function useCXchange({ contractAddress, account, chainId }: UseCXchangePr
       account &&
       chain
     ) {
+      console.log('[useCXchange] Creating wallet client with chain:', chain, 'chainId:', chainId);
       return createWalletClient({
         chain,
         transport: custom((window as any).ethereum),
@@ -350,6 +355,81 @@ export function useCXchange({ contractAddress, account, chainId }: UseCXchangePr
     return minAmount.toString();
   }, []);
 
+  // Check token allowance
+  const checkAllowance = useCallback(async (tokenAddress: string, spenderAddress: string): Promise<bigint> => {
+    if (!publicClient) throw new Error('Public client not initialized');
+    
+    try {
+      // Create a contract instance for the token (ERC20)
+      const tokenContract = getContract({
+        address: tokenAddress as `0x${string}`,
+        abi: [
+          {
+            inputs: [
+              { name: 'owner', type: 'address' },
+              { name: 'spender', type: 'address' }
+            ],
+            name: 'allowance',
+            outputs: [{ name: '', type: 'uint256' }],
+            stateMutability: 'view',
+            type: 'function'
+          }
+        ],
+        client: publicClient,
+      });
+      
+      const allowance = await tokenContract.read.allowance([account!, spenderAddress as `0x${string}`]) as bigint;
+      return allowance;
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to check allowance';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    }
+  }, [publicClient, account]);
+
+  // Approve token spending
+  const approveToken = useCallback(async (tokenAddress: string, amount: string): Promise<string> => {
+    if (!walletClient || !publicClient) throw new Error('Wallet not connected or contract not initialized');
+    if (!account) throw new Error('Account not connected');
+    
+    setIsApproving(true);
+    try {
+      // Create a contract instance for the token (ERC20)
+      const tokenContract = getContract({
+        address: tokenAddress as `0x${string}`,
+        abi: [
+          {
+            inputs: [
+              { name: 'spender', type: 'address' },
+              { name: 'amount', type: 'uint256' }
+            ],
+            name: 'approve',
+            outputs: [{ name: '', type: 'bool' }],
+            stateMutability: 'nonpayable',
+            type: 'function'
+          }
+        ],
+        client: { public: publicClient, wallet: walletClient },
+      });
+      
+      const amountWei = parseEther(amount);
+      const hash = await tokenContract.write.approve([contractAddress, amountWei]);
+      const receipt = await publicClient.waitForTransactionReceipt({ hash });
+      
+      if (receipt.status === 'success') {
+        return hash;
+      } else {
+        throw new Error('Approval failed');
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Approval failed';
+      setError(errorMessage);
+      throw new Error(errorMessage);
+    } finally {
+      setIsApproving(false);
+    }
+  }, [walletClient, publicClient, account, contractAddress]);
+
   // Execute swap
   const executeSwap = useCallback(async (params: SwapParams): Promise<SwapResult> => {
     if (!writeContract) throw new Error('Wallet not connected or contract not initialized');
@@ -358,6 +438,18 @@ export function useCXchange({ contractAddress, account, chainId }: UseCXchangePr
     setSwapError(null);
     try {
       const { tokenIn, tokenOut, amountIn, amountOutMin, slippagePercent = 0.5 } = params;
+      
+      // Check if approval is needed
+      const currentAllowance = await checkAllowance(tokenIn, contractAddress);
+      const requiredAmount = parseEther(amountIn);
+      
+      if (currentAllowance < requiredAmount) {
+        // Need to approve first
+        console.log('[useCXchange] Approval needed. Current allowance:', currentAllowance.toString(), 'Required:', requiredAmount.toString());
+        await approveToken(tokenIn, amountIn);
+        console.log('[useCXchange] Approval completed');
+      }
+      
       // Get fresh quote
       const quote = await getSwapQuote(tokenIn, tokenOut, amountIn);
       // Calculate minimum amount out if not provided
@@ -397,7 +489,7 @@ export function useCXchange({ contractAddress, account, chainId }: UseCXchangePr
     } finally {
       setIsSwapping(false);
     }
-  }, [writeContract, account, getSwapQuote, calculateMinAmountOut, refreshAllData, publicClient]);
+  }, [writeContract, account, getSwapQuote, calculateMinAmountOut, refreshAllData, publicClient, checkAllowance, approveToken, contractAddress]);
   
   // Format amount utility
   const formatAmount = useCallback((amount: string): string => {
@@ -429,6 +521,7 @@ export function useCXchange({ contractAddress, account, chainId }: UseCXchangePr
     isLoadingPairs,
     isLoadingStats,
     isSwapping,
+    isApproving,
     
     // Error states
     error,
@@ -446,6 +539,8 @@ export function useCXchange({ contractAddress, account, chainId }: UseCXchangePr
     
     // Write methods
     executeSwap,
+    approveToken,
+    checkAllowance,
     calculateMinAmountOut,
     
     // Utility methods

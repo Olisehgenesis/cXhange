@@ -5,6 +5,7 @@ import { useCXchangeGetAmountOut } from '../hooks/useMentoBroker';
 import { MENTO_ASSETS as assets, MentoAsset } from '../constants/mentoAssets';
 import { useBalance, useChainId, useAccount } from 'wagmi';
 import { useCXchange } from '../hooks/useCXchange';
+import { celoAlfajores } from 'viem/chains';
 
 interface BuySellDialogProps {
   open: boolean;
@@ -18,7 +19,7 @@ interface BuySellDialogProps {
 }
 
 // Helper to get asset info (address, decimals)
-async function getAssetInfo(symbol: string, networkKey: 'mainnet' | 'alfajores') {
+async function getAssetInfo(symbol: string) {
     return assets.find(a => a.symbol === symbol);
 }
 
@@ -34,9 +35,7 @@ const BuySellDialog: React.FC<BuySellDialogProps> = ({
   isConnected,
   fonbankLink,
 }) => {
-  const chainId = useChainId();
-  const networkKey: 'mainnet' | 'alfajores' = chainId === 44787 ? 'alfajores' : 'mainnet';
-  const [tokenInAsset, setTokenInAsset] = useState<MentoAsset | undefined>();
+  const chainId = useChainId();const [tokenInAsset, setTokenInAsset] = useState<MentoAsset | undefined>();
   const [tokenOutAsset, setTokenOutAsset] = useState<MentoAsset | undefined>();
   const [loadingAssets, setLoadingAssets] = useState(true);
 
@@ -44,8 +43,8 @@ const BuySellDialog: React.FC<BuySellDialogProps> = ({
     let mounted = true;
     setLoadingAssets(true);
     Promise.all([
-      getAssetInfo(tokenIn, networkKey),
-      getAssetInfo(tokenOut, networkKey)
+      getAssetInfo(tokenIn),
+      getAssetInfo(tokenOut)
     ]).then(([inAsset, outAsset]) => {
       if (mounted) {
         setTokenInAsset(inAsset);
@@ -54,23 +53,25 @@ const BuySellDialog: React.FC<BuySellDialogProps> = ({
       }
     });
     return () => { mounted = false; };
-  }, [tokenIn, tokenOut, networkKey]);
+  }, [tokenIn, tokenOut]);
 
   // Get contract address for current network
-  const contractAddress = networkKey === 'alfajores' 
+  const contractAddress = chainId === celoAlfajores.id 
     ? import.meta.env.VITE_CXCHANGE_ADDRESS_ALFAJORES as `0x${string}`
     : import.meta.env.VITE_CXCHANGE_ADDRESS_MAINNET as `0x${string}`;
   
   // Initialize cXchange hook for trading
   const { executeSwap, isSwapping, swapError } = useCXchange({
     contractAddress,
-    account: address,
+    account: address as `0x${string}`,
     chainId,
   });
 
-  // Determine which token is being spent and which is being received based on action
-  // For BUY: spend tokenOut (e.g., cUSD) to receive tokenIn (e.g., CELO)
-  // For SELL: spend tokenIn (e.g., CELO) to receive tokenOut (e.g., cUSD)
+  // FIXED: Proper token mapping based on action
+  // For BUY action: user wants to buy tokenIn using tokenOut (spend tokenOut, receive tokenIn)
+  // For SELL action: user wants to sell tokenIn for tokenOut (spend tokenIn, receive tokenOut)
+  const spendTokenSymbol = action === 'buy' ? tokenOut : tokenIn;
+  const receiveTokenSymbol = action === 'buy' ? tokenIn : tokenOut;
   const spendToken = action === 'buy' ? tokenOutAsset : tokenInAsset;
   const receiveToken = action === 'buy' ? tokenInAsset : tokenOutAsset;
   
@@ -78,12 +79,21 @@ const BuySellDialog: React.FC<BuySellDialogProps> = ({
   const spendTokenAddress = spendToken?.address?.startsWith('0x') ? (spendToken.address as `0x${string}`) : undefined;
   const receiveTokenAddress = receiveToken?.address?.startsWith('0x') ? (receiveToken.address as `0x${string}`) : undefined;
 
-  const spendTokenBalance = useBalance({ address, token: spendTokenAddress, chainId });
-  const receiveTokenBalance = useBalance({ address, token: receiveTokenAddress, chainId });
+  const spendTokenBalance = useBalance({ address: address as `0x${string}`, token: spendTokenAddress as `0x${string}`, chainId });
+  const receiveTokenBalance = useBalance({ address: address as `0x${string}`, token: receiveTokenAddress as `0x${string}`, chainId });
 
-  //log spendTokenBalance and receiveTokenBalance
-  console.log('spendTokenBalance', spendTokenBalance);
-  console.log('receiveTokenBalance', receiveTokenBalance);
+  // Debug logging
+  console.log('BuySellDialog Debug:', {
+    action,
+    tokenIn,
+    tokenOut,
+    spendTokenSymbol,
+    receiveTokenSymbol,
+    spendTokenAddress,
+    receiveTokenAddress,
+    spendTokenBalance: spendTokenBalance.data?.formatted,
+    receiveTokenBalance: receiveTokenBalance.data?.formatted,
+  });
 
   const [amount, setAmount] = useState('');
   const parsedAmount = useMemo(() => {
@@ -95,13 +105,28 @@ const BuySellDialog: React.FC<BuySellDialogProps> = ({
     }
   }, [amount]);
 
-  // Live price calculation - use spend token as input, receive token as output
-  const { data: amountOutRaw, loading: loadingOut } = useCXchangeGetAmountOut({
-    tokenIn: spendToken?.address as `0x${string}`,
-    tokenOut: receiveToken?.address as `0x${string}`,
+  // FIXED: Use the correct token addresses for the swap quote
+  const { data: amountOutRaw, loading: loadingOut, error: amountOutError } = useCXchangeGetAmountOut({
+    tokenIn: spendTokenAddress!,
+    tokenOut: receiveTokenAddress!,
     amountIn: parsedAmount,
-    enabled: !!spendToken && !!receiveToken && parsedAmount > 0n,
+    enabled: !!spendTokenAddress && !!receiveTokenAddress && parsedAmount > 0n,
   });
+
+  // Debugging logs for estimation
+  React.useEffect(() => {
+    console.log('[BuySellDialog] useCXchangeGetAmountOut params:', {
+      tokenIn: spendTokenAddress,
+      tokenOut: receiveTokenAddress,
+      amountIn: parsedAmount.toString(),
+      enabled: !!spendTokenAddress && !!receiveTokenAddress && parsedAmount > 0n,
+    });
+    console.log('[BuySellDialog] useCXchangeGetAmountOut result:', {
+      amountOutRaw: amountOutRaw?.toString(),
+      loadingOut,
+      amountOutError,
+    });
+  }, [spendTokenAddress, receiveTokenAddress, parsedAmount, amountOutRaw, loadingOut, amountOutError]);
 
   const amountOut = useMemo(() => {
     if (!amountOutRaw) return '';
@@ -122,14 +147,22 @@ const BuySellDialog: React.FC<BuySellDialogProps> = ({
 
   // Handle swap execution
   const handleSwap = async () => {
-    if (!spendToken?.address || !receiveToken?.address || !amount || !action) {
+    if (!spendTokenAddress || !receiveTokenAddress || !amount || !action) {
+      console.error('Missing required swap parameters');
       return;
     }
 
     try {
+      console.log('Executing swap with params:', {
+        tokenIn: spendTokenAddress,
+        tokenOut: receiveTokenAddress,
+        amountIn: amount,
+        action,
+      });
+
       const result = await executeSwap({
-        tokenIn: spendToken.address,
-        tokenOut: receiveToken.address,
+        tokenIn: spendTokenAddress,
+        tokenOut: receiveTokenAddress,
         amountIn: amount,
         slippagePercent: 0.5, // 0.5% slippage tolerance
       });
@@ -176,12 +209,16 @@ const BuySellDialog: React.FC<BuySellDialogProps> = ({
               </div>
               <div className="space-y-2 mb-4">
                 <div className="flex justify-between items-center p-2 bg-sand-100 rounded-milo">
-                  <span className="font-outfit font-semibold text-sand-800">{tokenIn}</span>
-                  <span className="text-sand-700 font-inter text-sm">{action === 'buy' ? receiveTokenBalance.isLoading ? 'Loading...' : receiveTokenBalance.data ? parseFloat(receiveTokenBalance.data.formatted).toFixed(4) : '0.0000' : spendTokenBalance.isLoading ? 'Loading...' : spendTokenBalance.data ? parseFloat(spendTokenBalance.data.formatted).toFixed(4) : '0.0000'}</span>
+                  <span className="font-outfit font-semibold text-sand-800">{spendTokenSymbol}</span>
+                  <span className="text-sand-700 font-inter text-sm">
+                    {spendTokenBalance.isLoading ? 'Loading...' : spendTokenBalance.data ? parseFloat(spendTokenBalance.data.formatted).toFixed(4) : '0.0000'}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-2 bg-sand-100 rounded-milo">
-                  <span className="font-outfit font-semibold text-sand-800">{tokenOut}</span>
-                  <span className="text-sand-700 font-inter text-sm">{action === 'buy' ? spendTokenBalance.isLoading ? 'Loading...' : spendTokenBalance.data ? parseFloat(spendTokenBalance.data.formatted).toFixed(4) : '0.0000' : receiveTokenBalance.isLoading ? 'Loading...' : receiveTokenBalance.data ? parseFloat(receiveTokenBalance.data.formatted).toFixed(4) : '0.0000'}</span>
+                  <span className="font-outfit font-semibold text-sand-800">{receiveTokenSymbol}</span>
+                  <span className="text-sand-700 font-inter text-sm">
+                    {receiveTokenBalance.isLoading ? 'Loading...' : receiveTokenBalance.data ? parseFloat(receiveTokenBalance.data.formatted).toFixed(4) : '0.0000'}
+                  </span>
                 </div>
               </div>
               {parseFloat(spendTokenBalance.data?.formatted || '0') === 0 && parseFloat(receiveTokenBalance.data?.formatted || '0') === 0 && tokenIn === 'cUSD' && (
@@ -193,7 +230,7 @@ const BuySellDialog: React.FC<BuySellDialogProps> = ({
               <form className="space-y-4 mt-2">
                 <div>
                   <label className="block text-xs font-medium text-milo-secondary mb-1">
-                    Amount to {action}
+                    Amount to spend ({spendTokenSymbol})
                   </label>
                   <input
                     type="number"
@@ -202,7 +239,7 @@ const BuySellDialog: React.FC<BuySellDialogProps> = ({
                     value={amount}
                     onChange={e => setAmount(e.target.value)}
                     className="input-milo w-full text-lg font-mono"
-                    placeholder={`0.00 (${action === 'buy' ? tokenIn : tokenIn})`}
+                    placeholder={`0.00 ${spendTokenSymbol}`}
                   />
                   {inputError && <div className="text-burgundy-500 text-xs mt-1">Enter a valid amount</div>}
                   {insufficient && <div className="text-burgundy-500 text-xs mt-1">Insufficient balance</div>}
@@ -210,16 +247,23 @@ const BuySellDialog: React.FC<BuySellDialogProps> = ({
                 <div className="bg-sand-100 rounded-milo p-3 space-y-2">
                   <div className="flex justify-between text-sm">
                     <span>Price</span>
-                    <span>{price ? `${price} ${action === 'buy' ? tokenOut : tokenIn}/${action === 'buy' ? tokenIn : tokenOut}` : '--'}</span>
+                    <span>{price ? `${price} ${spendTokenSymbol}/${receiveTokenSymbol}` : '--'}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>You {action === 'buy' ? 'pay' : 'pay'}</span>
-                    <span>{amount || '--'} {action === 'buy' ? tokenOut : tokenIn}</span>
+                    <span>You spend</span>
+                    <span>{amount || '--'} {spendTokenSymbol}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span>You {action === 'buy' ? 'receive' : 'receive'}</span>
-                    <span>{loadingOut ? 'Calculating...' : amountOut || '--'} {action === 'buy' ? tokenIn : tokenOut}</span>
+                    <span>You receive</span>
+                    <span>
+                      {loadingOut ? 'Calculating...' : amountOut || '--'} {receiveTokenSymbol}
+                    </span>
                   </div>
+                  {amountOutError && (
+                    <div className="text-burgundy-500 text-xs mt-1">
+                      Error getting quote: {amountOutError.message}
+                    </div>
+                  )}
                 </div>
                 {swapError && (
                   <div className="text-burgundy-500 text-xs mt-1 bg-burgundy-50 p-2 rounded-milo">
@@ -245,4 +289,4 @@ const BuySellDialog: React.FC<BuySellDialogProps> = ({
   );
 };
 
-export default BuySellDialog; 
+export default BuySellDialog;

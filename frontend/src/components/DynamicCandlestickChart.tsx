@@ -49,11 +49,14 @@ export const DynamicCandlestickChart: React.FC<DynamicCandlestickChartProps> = (
     const fetchPricesAndGenerateCandles = async () => {
       try {
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+        console.log('[DynamicCandlestickChart] Using API URL:', apiUrl)
         // Fetch latest prices from API
         const response = await fetch(`${apiUrl}/api/prices/latest?pair=${pair}&limit=1000`)
+        console.log('[DynamicCandlestickChart] Fetch response status:', response.status)
         const data = await response.json()
         
         if (data.prices && Array.isArray(data.prices)) {
+          console.log('[DynamicCandlestickChart] Received', data.prices.length, 'prices for pair:', pair)
           // Add prices to the generator
           data.prices.forEach((price: Price) => {
             candlestickGenerator.addPrice(pair, price)
@@ -89,10 +92,13 @@ export const DynamicCandlestickChart: React.FC<DynamicCandlestickChartProps> = (
       try {
         // Fetch new prices every 5 seconds
         const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+        console.log('[DynamicCandlestickChart] Real-time update - Using API URL:', apiUrl)
         const response = await fetch(`${apiUrl}/api/prices/latest?pair=${pair}&limit=50`)
+        console.log('[DynamicCandlestickChart] Real-time update - Response status:', response.status)
         const data = await response.json()
         
         if (data.prices && Array.isArray(data.prices)) {
+          console.log('[DynamicCandlestickChart] Real-time update - Received', data.prices.length, 'prices')
           // Add new prices to the generator
           data.prices.forEach((price: Price) => {
             candlestickGenerator.addPrice(pair, price)

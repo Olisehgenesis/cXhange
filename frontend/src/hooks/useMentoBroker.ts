@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { usePublicClient,  useChainId } from 'wagmi';
 
-import cXchangeArtifact from '../abis/cXchangeABI.json';
+import cXchangeArtifact from '../abis/cXchangev4.json';
 
 // Read contract addresses from environment variables
 const CXCHANGE_ADDRESSES: Record<number, string | undefined> = {
@@ -34,15 +34,31 @@ export function useCXchangeGetAmountOut({
     if (!address) return;
     setLoading(true);
     setError(null);
+    console.log('[useCXchangeGetAmountOut] Calling readContract with:', {
+      address,
+      abi: cXchangeAbi,
+      functionName: 'getSwapQuote', // CHANGED from 'getAmountOut' to 'getSwapQuote' for cXchangev4
+      args: [tokenIn, tokenOut, amountIn],
+    });
     publicClient
       .readContract({
         address,
         abi: cXchangeAbi,
-        functionName: 'getAmountOut', // Update if your contract uses a different method name
+        functionName: 'getSwapQuote', // CHANGED from 'getAmountOut' to 'getSwapQuote'
         args: [tokenIn, tokenOut, amountIn],
       })
-      .then((result) => setData(result as bigint))
-      .catch(setError)
+      .then((result) => {
+        // getSwapQuote returns [amountOut, protocolFee]
+        if (Array.isArray(result) && result.length > 0) {
+          setData(result[0] as bigint);
+        } else {
+          setData(null);
+        }
+      })
+      .catch((err) => {
+        console.error('[useCXchangeGetAmountOut] readContract error:', err);
+        setError(err)
+      })
       .finally(() => setLoading(false));
     // eslint-disable-next-line
   }, [tokenIn, tokenOut, amountIn, chainId, enabled, publicClient]);
