@@ -25,7 +25,16 @@ const PORT = getPortFromArgs() || process.env.PORT || 3001
 
 // Middleware
 app.use(helmet())
-app.use(cors())
+app.use(cors({
+  origin: true, // Allow all origins
+  credentials: true, // Allow credentials
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}))
+
+// Handle preflight requests
+app.options('*', cors())
+
 app.use(morgan('combined'))
 app.use(express.json())
 
