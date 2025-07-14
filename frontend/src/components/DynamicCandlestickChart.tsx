@@ -48,8 +48,9 @@ export const DynamicCandlestickChart: React.FC<DynamicCandlestickChartProps> = (
 
     const fetchPricesAndGenerateCandles = async () => {
       try {
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
         // Fetch latest prices from API
-        const response = await fetch(`http://localhost:3001/api/prices/latest?pair=${pair}&limit=1000`)
+        const response = await fetch(`${apiUrl}/api/prices/latest?pair=${pair}&limit=1000`)
         const data = await response.json()
         
         if (data.prices && Array.isArray(data.prices)) {
@@ -87,7 +88,8 @@ export const DynamicCandlestickChart: React.FC<DynamicCandlestickChartProps> = (
     const interval = setInterval(async () => {
       try {
         // Fetch new prices every 5 seconds
-        const response = await fetch(`http://localhost:3001/api/prices/latest?pair=${pair}&limit=50`)
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001'
+        const response = await fetch(`${apiUrl}/api/prices/latest?pair=${pair}&limit=50`)
         const data = await response.json()
         
         if (data.prices && Array.isArray(data.prices)) {
