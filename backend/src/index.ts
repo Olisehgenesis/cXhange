@@ -10,7 +10,18 @@ import { PriceCollector } from './services/PriceCollector'
 import { TradingPairsService } from './services/TradingPairsService'
 
 const app: Application = express()
-const PORT = process.env.PORT || 3001
+
+// Parse --port argument from command line
+function getPortFromArgs() {
+  const portArg = process.argv.find(arg => arg.startsWith('--port='))
+  if (portArg) {
+    const port = parseInt(portArg.split('=')[1], 10)
+    if (!isNaN(port)) return port
+  }
+  return null
+}
+
+const PORT = getPortFromArgs() || process.env.PORT || 3001
 
 // Middleware
 app.use(helmet())
