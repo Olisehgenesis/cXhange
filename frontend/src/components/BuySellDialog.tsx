@@ -2,7 +2,7 @@ import { Dialog } from '@headlessui/react';
 import { X } from 'lucide-react';
 import React, { useState, useMemo } from 'react';
 import { useCXchangeGetAmountOut } from '../hooks/useMentoBroker';
-import { getMentoAssets, MentoAsset } from '../constants/mentoAssets';
+import { MENTO_ASSETS as assets, MentoAsset } from '../constants/mentoAssets';
 import { useBalance, useChainId, useAccount } from 'wagmi';
 import { useCXchange } from '../hooks/useCXchange';
 
@@ -19,8 +19,7 @@ interface BuySellDialogProps {
 
 // Helper to get asset info (address, decimals)
 async function getAssetInfo(symbol: string, networkKey: 'mainnet' | 'alfajores') {
-  const assets = await getMentoAssets(networkKey);
-  return assets.find(a => a.symbol === symbol);
+    return assets.find(a => a.symbol === symbol);
 }
 
 const DECIMALS = 18; // All Mento tokens are 18 decimals

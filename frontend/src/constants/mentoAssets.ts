@@ -1,3 +1,10 @@
+export interface MentoAsset {
+  address: string;
+  name: string;
+  symbol: string;
+  decimals: number;
+}
+
 export const MENTO_ASSETS = 
   [
     {
