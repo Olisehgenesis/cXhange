@@ -1,0 +1,41 @@
+[
+  {
+    "inputs": [
+      {"internalType": "address", "name": "exchangeProvider", "type": "address"},
+      {"internalType": "bytes32", "name": "exchangeId", "type": "bytes32"},
+      {"internalType": "address", "name": "tokenIn", "type": "address"},
+      {"internalType": "address", "name": "tokenOut", "type": "address"},
+      {"internalType": "uint256", "name": "amountIn", "type": "uint256"}
+    ],
+    "name": "getAmountOut",
+    "outputs": [{"internalType": "uint256", "name": "amountOut", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "exchangeProvider", "type": "address"},
+      {"internalType": "bytes32", "name": "exchangeId", "type": "bytes32"},
+      {"internalType": "address", "name": "tokenIn", "type": "address"},
+      {"internalType": "address", "name": "tokenOut", "type": "address"},
+      {"internalType": "uint256", "name": "amountIn", "type": "uint256"},
+      {"internalType": "uint256", "name": "minAmountOut", "type": "uint256"}
+    ],
+    "name": "swap",
+    "outputs": [{"internalType": "uint256", "name": "amountOut", "type": "uint256"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "address", "name": "exchangeProvider", "type": "address"},
+      {"internalType": "bytes32", "name": "exchangeId", "type": "bytes32"},
+      {"internalType": "address", "name": "tokenIn", "type": "address"},
+      {"internalType": "address", "name": "tokenOut", "type": "address"}
+    ],
+    "name": "getExchangeRate",
+    "outputs": [{"internalType": "uint256", "name": "rate", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  }
+] 

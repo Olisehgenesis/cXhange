@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    margin: 0;
+    font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+      'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #E7E3D4; /* Sand Background */
+    color: #2D2A24; /* Charcoal Text */
+    line-height: 1.6;
+  }
+
+  code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+      monospace;
+  }
+
+  /* Custom scrollbar for MiloFX */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: #F5F2E8; /* Cream */
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: #D1CDB8; /* Warm Gray */
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: #A39C89; /* Volume Bars */
+  }
+}
+
+@layer components {
+  /* MiloFX Button Styles */
+  .btn-primary {
+    @apply bg-forest-500 hover:bg-forest-600 text-white font-medium py-3 px-6 rounded-milo transition-all duration-200 shadow-milo hover:shadow-milo-lg focus:outline-none focus:ring-2 focus:ring-forest-500 focus:ring-offset-2 focus:ring-offset-sand-100;
+  }
+
+  .btn-secondary {
+    @apply bg-sand-100 hover:bg-sand-200 text-sand-800 font-medium py-3 px-6 rounded-milo transition-all duration-200 shadow-milo hover:shadow-milo-lg focus:outline-none focus:ring-2 focus:ring-sand-500 focus:ring-offset-2 focus:ring-offset-sand-100 border border-sand-500;
+  }
+
+  .btn-accent {
+    @apply bg-rust-500 hover:bg-rust-600 text-white font-medium py-3 px-6 rounded-milo transition-all duration-200 shadow-milo hover:shadow-milo-lg focus:outline-none focus:ring-2 focus:ring-rust-500 focus:ring-offset-2 focus:ring-offset-sand-100;
+  }
+  
+  /* MiloFX Card Styles */
+  .card {
+    @apply bg-sand-100 rounded-milo p-milo border border-sand-500 shadow-milo;
+  }
+
+  .card-secondary {
+    @apply bg-sand-50 rounded-milo p-milo border border-sand-500 shadow-milo;
+  }
+
+  .card-elevated {
+    @apply bg-white rounded-milo p-milo border border-sand-500 shadow-milo-lg;
+  }
+
+  /* MiloFX Input Styles */
+  .input-milo {
+    @apply bg-sand-100 border border-sand-500 text-sand-800 rounded-milo px-4 py-3 focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent transition-all duration-200 placeholder-sand-700;
+  }
+
+  .select-milo {
+    @apply bg-sand-100 border border-sand-500 text-sand-800 rounded-milo px-4 py-3 focus:outline-none focus:ring-2 focus:ring-forest-500 focus:border-transparent transition-all duration-200;
+  }
+
+  /* MiloFX Status Indicators */
+  .status-success {
+    @apply bg-forest-600 text-white px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .status-error {
+    @apply bg-burgundy-500 text-white px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  .status-warning {
+    @apply bg-rust-500 text-white px-3 py-1 rounded-full text-sm font-medium;
+  }
+
+  /* MiloFX Typography */
+  .text-milo-primary {
+    @apply text-sand-800 font-outfit;
+  }
+
+  .text-milo-secondary {
+    @apply text-sand-700 font-inter;
+  }
+
+  .text-milo-accent {
+    @apply text-forest-500 font-outfit font-semibold;
+  }
+
+  /* MiloFX Spacing Utilities */
+  .space-milo {
+    @apply space-y-milo;
+  }
+
+  .space-milo-sm {
+    @apply space-y-milo-sm;
+  }
+
+  .space-milo-xs {
+    @apply space-y-milo-xs;
+  }
+
+  /* MiloFX Animation Classes */
+  .animate-milo-fade {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  .animate-milo-scale {
+    @apply transition-transform duration-200 ease-in-out hover:scale-105;
+  }
+
+  .animate-milo-glow {
+    @apply transition-shadow duration-200 ease-in-out hover:shadow-milo-lg;
+  }
+} 

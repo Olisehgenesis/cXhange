@@ -1,0 +1,48 @@
+[
+  {
+    "inputs": [],
+    "name": "getExchanges",
+    "outputs": [
+      {
+        "components": [
+          {"internalType": "bytes32", "name": "exchangeId", "type": "bytes32"},
+          {"internalType": "address[]", "name": "assets", "type": "address[]"}
+        ],
+        "internalType": "struct IExchangeProvider.Exchange[]",
+        "name": "exchanges",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "bytes32", "name": "exchangeId", "type": "bytes32"}
+    ],
+    "name": "getExchange",
+    "outputs": [
+      {
+        "components": [
+          {"internalType": "bytes32", "name": "exchangeId", "type": "bytes32"},
+          {"internalType": "address[]", "name": "assets", "type": "address[]"}
+        ],
+        "internalType": "struct IExchangeProvider.Exchange",
+        "name": "exchange",
+        "type": "tuple"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {"internalType": "bytes32", "name": "exchangeId", "type": "bytes32"},
+      {"internalType": "address", "name": "token", "type": "address"}
+    ],
+    "name": "getReserves",
+    "outputs": [{"internalType": "uint256", "name": "reserves", "type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
+  }
+] 

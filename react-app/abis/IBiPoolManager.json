@@ -1,0 +1,27 @@
+[
+  {
+    "inputs": [],
+    "name": "getExchanges",
+    "outputs": [
+      {
+        "components": [
+          {
+            "internalType": "bytes32",
+            "name": "exchangeId",
+            "type": "bytes32"
+          },
+          {
+            "internalType": "address[]",
+            "name": "assets",
+            "type": "address[]"
+          }
+        ],
+        "internalType": "struct IBiPoolManager.Exchange[]",
+        "name": "exchanges",
+        "type": "tuple[]"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  }
+]

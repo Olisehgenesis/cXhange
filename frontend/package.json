@@ -1,0 +1,61 @@
+{
+  "name": "c-switch-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for C-Switch trading platform",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0"
+  },
+  "keywords": [
+    "react",
+    "trading",
+    "celo",
+    "charts"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@headlessui/react": "^2.2.4",
+    "@tanstack/react-query": "^5.83.0",
+    "@uniswap/v4-core": "^1.0.2",
+    "@uniswap/v4-periphery": "^1.0.2",
+    "@uniswap/v4-sdk": "^1.21.4",
+    "@web3modal/wagmi": "^5.1.11",
+    "axios": "^1.6.0",
+    "chart.js": "^4.5.0",
+    "clsx": "^2.0.0",
+    "dotenv": "^17.2.0",
+    "framer-motion": "^12.23.3",
+    "lightweight-charts": "^4.1.3",
+    "lucide-react": "^0.294.0",
+    "react": "^18.2.0",
+    "react-chartjs-2": "^5.3.0",
+    "react-dom": "^18.2.0",
+    "react-query": "^3.39.3",
+    "react-router-dom": "^7.6.3",
+    "recharts": "^3.1.0",
+    "tailwind-merge": "^2.0.0",
+    "viem": "^2.31.7",
+    "wagmi": "^2.15.6"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.13",
+    "@types/react": "^18.2.37",
+    "@types/react-dom": "^18.2.15",
+    "@typescript-eslint/eslint-plugin": "^6.10.0",
+    "@typescript-eslint/parser": "^6.10.0",
+    "@vitejs/plugin-react": "^4.1.1",
+    "autoprefixer": "^10.4.16",
+    "eslint": "^8.53.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.4",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.5",
+    "typescript": "^5.2.2",
+    "vite": "^4.5.0"
+  },
+  "packageManager": "pnpm@10.11.0+sha512.6540583f41cc5f628eb3d9773ecee802f4f9ef9923cc45b69890fb47991d4b092964694ec3a4f738a420c918a333062c8b925d312f42e4f0c263eb603551f977"
+}
